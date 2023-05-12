@@ -147,7 +147,7 @@ ln -sf /etc/nginx/nginx.conf /etc/nginx/conf/nginx.conf
 rm -f /etc/nginx/conf.d/dev.conf
 
 # Configure user
-log_info "Configuring $NPMUSER user ..."
+log "Configuring $NPMUSER user ..."
 
 if id -u "$NPMUSER" 2>/dev/null; then
 	# user already exists
@@ -157,7 +157,7 @@ else
 	useradd -o -u "$PUID" -U -d "$NPMHOME" -s /bin/false "$NPMUSER"
 fi
 
-log_info "Configuring $NPMGROUP group ..."
+log "Configuring $NPMGROUP group ..."
 if [ "$(get_group_id "$NPMGROUP")" = '' ]; then
 	# Add group. This will not set the id properly if it's already taken
 	groupadd -f -g "$PGID" "$NPMGROUP"
@@ -210,7 +210,7 @@ chmod -R 777 /var/cache/nginx || true
 chmod 644 /etc/logrotate.d/nginx-proxy-manager
 
 # Set ownership
-log_info 'Setting ownership ...'
+log 'Setting ownership ...'
 
 # root
 chown root /tmp/nginx
