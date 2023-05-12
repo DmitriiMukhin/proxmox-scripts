@@ -185,6 +185,7 @@ chown -R "$PUID:$PGID" "$NPMHOME"
 
 # Create required folders
 mkdir -p \
+  /etc/letsencrypt \
 	/data/nginx \
 	/data/custom_ssl \
 	/data/logs \
@@ -263,6 +264,7 @@ chown root /tmp/nginx
 
 # npm user and group
 chown -R "$PUID:$PGID" /data
+chown -R "$PUID:$PGID" /etc/letsencrypt
 chown -R "$PUID:$PGID" /etc/letsencrypt.ini
 chown -R "$PUID:$PGID" /run/nginx
 chown -R "$PUID:$PGID" /tmp/nginx
