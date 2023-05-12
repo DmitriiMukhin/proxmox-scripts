@@ -217,7 +217,7 @@ chown root /tmp/nginx
 
 # npm user and group
 chown -R "$PUID:$PGID" /data
-chown -R "$PUID:$PGID" /etc/letsencrypt
+chown -R "$PUID:$PGID" /etc/letsencrypt.ini
 chown -R "$PUID:$PGID" /run/nginx
 chown -R "$PUID:$PGID" /tmp/nginx
 chown -R "$PUID:$PGID" /var/cache/nginx
