@@ -224,11 +224,7 @@ chown -R "$PUID:$PGID" /var/cache/nginx
 chown -R "$PUID:$PGID" /var/lib/logrotate
 chown -R "$PUID:$PGID" /var/lib/nginx
 chown -R "$PUID:$PGID" /var/log/nginx
-
-# Don't chown entire /etc/nginx folder as this causes crashes on some systems
-chown -R "$PUID:$PGID" /etc/nginx/nginx
-chown -R "$PUID:$PGID" /etc/nginx/nginx.conf
-chown -R "$PUID:$PGID" /etc/nginx/conf.d
+chown -R "$PUID:$PGID" /etc/nginx
 
 # Prevents errors when installing python certbot plugins when non-root
 chown -R "$PUID:$PGID" /opt/certbot
