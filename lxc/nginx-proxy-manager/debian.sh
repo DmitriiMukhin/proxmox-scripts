@@ -158,7 +158,7 @@ else
 fi
 
 log "Configuring $NPMGROUP group ..."
-if [ "$(get_group_id "$NPMGROUP")" = '' ]; then
+if [ "$(getent group "$NPMGROUP" | cut -d: -f3)" = '' ]; then
 	# Add group. This will not set the id properly if it's already taken
 	groupadd -f -g "$PGID" "$NPMGROUP"
 else
@@ -167,7 +167,7 @@ fi
 
 # Set the group ID and check it
 groupmod -o -g "$PGID" "$NPMGROUP"
-if [ "$(get_group_id "$NPMGROUP")" != "$PGID" ]; then
+if [ "$(getent group "$NPMGROUP" | cut -d: -f3)" != "$PGID" ]; then
 	echo "ERROR: Unable to set group id properly"
 	exit 1
 fi
