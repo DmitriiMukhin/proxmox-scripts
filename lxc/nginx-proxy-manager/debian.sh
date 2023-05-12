@@ -317,7 +317,7 @@ User=npm
 Group=npm
 Type=simple
 Environment=NODE_ENV=production
-ExecStartPre=/data/prestart.sh
+ExecStartPre=-/bin/sh /data/prestart.sh
 ExecStart=/usr/bin/node index.js --abort_on_uncaught_exception --max_old_space_size=250
 WorkingDirectory=/app
 Restart=on-failure
