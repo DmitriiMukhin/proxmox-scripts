@@ -279,6 +279,33 @@ chown -R "$PUID:$PGID" /opt/certbot
 
 # Create NPM service
 log "Creating NPM service"
+cat << 'EOF' > /data/prestart.sh
+#!/usr/bin/env bash
+set -Eeuo pipefail
+mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
+
+# Set ownership
+log 'Setting ownership ...'
+
+# root
+chown root /tmp/nginx
+
+# npm user and group
+chown -R "$PUID:$PGID" /data
+chown -R "$PUID:$PGID" /etc/letsencrypt
+chown -R "$PUID:$PGID" /etc/letsencrypt.ini
+chown -R "$PUID:$PGID" /run/nginx
+chown -R "$PUID:$PGID" /tmp/nginx
+chown -R "$PUID:$PGID" /var/cache/nginx
+chown -R "$PUID:$PGID" /var/lib/logrotate
+chown -R "$PUID:$PGID" /var/lib/nginx
+chown -R "$PUID:$PGID" /var/log/nginx
+chown -R "$PUID:$PGID" /etc/nginx
+
+# Prevents errors when installing python certbot plugins when non-root
+chown -R "$PUID:$PGID" /opt/certbot
+EOF
+
 cat << 'EOF' > /lib/systemd/system/npm.service
 [Unit]
 Description=Nginx Proxy Manager
@@ -290,7 +317,7 @@ User=npm
 Group=npm
 Type=simple
 Environment=NODE_ENV=production
-ExecStartPre=-/bin/mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
+ExecStartPre=/data/prestart.sh
 ExecStart=/usr/bin/node index.js --abort_on_uncaught_exception --max_old_space_size=250
 WorkingDirectory=/app
 Restart=on-failure
