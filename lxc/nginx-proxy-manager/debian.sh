@@ -12,6 +12,11 @@ LASTCMD=""
 WGETOPT="-t 1 -T 15 -q"
 DEVDEPS="git build-essential libffi-dev libssl-dev python3-dev"
 NPMURL="https://github.com/NginxProxyManager/nginx-proxy-manager"
+PUID=1081
+PGID=1081
+NPMUSER=npm
+NPMGROUP=npm
+NPMHOME=/tmp/npmuserhome
 
 cd $TEMPDIR
 touch $TEMPLOG
@@ -141,26 +146,92 @@ cp docker/rootfs/etc/logrotate.d/nginx-proxy-manager /etc/logrotate.d/nginx-prox
 ln -sf /etc/nginx/nginx.conf /etc/nginx/conf/nginx.conf
 rm -f /etc/nginx/conf.d/dev.conf
 
-# Create required folders
-mkdir -p /tmp/nginx/body \
-/run/nginx \
-/data/nginx \
-/data/custom_ssl \
-/data/logs \
-/data/access \
-/data/nginx/default_host \
-/data/nginx/default_www \
-/data/nginx/proxy_host \
-/data/nginx/redirection_host \
-/data/nginx/stream \
-/data/nginx/dead_host \
-/data/nginx/temp \
-/var/lib/nginx/cache/public \
-/var/lib/nginx/cache/private \
-/var/cache/nginx/proxy_temp
+# Configure user
+log_info "Configuring $NPMUSER user ..."
 
-chmod -R 777 /var/cache/nginx
+if id -u "$NPMUSER" 2>/dev/null; then
+	# user already exists
+	usermod -u "$PUID" "$NPMUSER"
+else
+	# Add user
+	useradd -o -u "$PUID" -U -d "$NPMHOME" -s /bin/false "$NPMUSER"
+fi
+
+log_info "Configuring $NPMGROUP group ..."
+if [ "$(get_group_id "$NPMGROUP")" = '' ]; then
+	# Add group. This will not set the id properly if it's already taken
+	groupadd -f -g "$PGID" "$NPMGROUP"
+else
+	groupmod -o -g "$PGID" "$NPMGROUP"
+fi
+
+# Set the group ID and check it
+groupmod -o -g "$PGID" "$NPMGROUP"
+if [ "$(get_group_id "$NPMGROUP")" != "$PGID" ]; then
+	echo "ERROR: Unable to set group id properly"
+	exit 1
+fi
+
+# Set the group against the user and check it
+usermod -G "$PGID" "$NPMGROUP"
+if [ "$(id -g "$NPMUSER")" != "$PGID" ] ; then
+	echo "ERROR: Unable to set group against the user properly"
+	exit 1
+fi
+
+# Home for user
+mkdir -p "$NPMHOME"
+chown -R "$PUID:$PGID" "$NPMHOME"
+
+# Create required folders
+mkdir -p \
+	/data/nginx \
+	/data/custom_ssl \
+	/data/logs \
+	/data/access \
+	/data/nginx/default_host \
+	/data/nginx/default_www \
+	/data/nginx/proxy_host \
+	/data/nginx/redirection_host \
+	/data/nginx/stream \
+	/data/nginx/dead_host \
+	/data/nginx/temp \
+	/data/letsencrypt-acme-challenge \
+	/run/nginx \
+	/tmp/nginx/body \
+	/var/log/nginx \
+	/var/lib/nginx/cache/public \
+	/var/lib/nginx/cache/private \
+	/var/cache/nginx/proxy_temp
+
+touch /var/log/nginx/error.log || true
+chmod 777 /var/log/nginx/error.log || true
+chmod -R 777 /var/cache/nginx || true
+chmod 644 /etc/logrotate.d/nginx-proxy-manager
+
+# Set ownership
+log_info 'Setting ownership ...'
+
+# root
 chown root /tmp/nginx
+
+# npm user and group
+chown -R "$PUID:$PGID" /data
+chown -R "$PUID:$PGID" /etc/letsencrypt
+chown -R "$PUID:$PGID" /run/nginx
+chown -R "$PUID:$PGID" /tmp/nginx
+chown -R "$PUID:$PGID" /var/cache/nginx
+chown -R "$PUID:$PGID" /var/lib/logrotate
+chown -R "$PUID:$PGID" /var/lib/nginx
+chown -R "$PUID:$PGID" /var/log/nginx
+
+# Don't chown entire /etc/nginx folder as this causes crashes on some systems
+chown -R "$PUID:$PGID" /etc/nginx/nginx
+chown -R "$PUID:$PGID" /etc/nginx/nginx.conf
+chown -R "$PUID:$PGID" /etc/nginx/conf.d
+
+# Prevents errors when installing python certbot plugins when non-root
+chown -R "$PUID:$PGID" /opt/certbot
 
 # Dynamically generate resolvers file, if resolver is IPv6, enclose in `[]`
 # thanks @tfmm
@@ -217,6 +288,8 @@ After=network.target
 Wants=openresty.service
 
 [Service]
+User=npm
+Group=npm
 Type=simple
 Environment=NODE_ENV=production
 ExecStartPre=-/bin/mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
