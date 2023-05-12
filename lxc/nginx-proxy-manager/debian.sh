@@ -209,26 +209,6 @@ chmod 777 /var/log/nginx/error.log || true
 chmod -R 777 /var/cache/nginx || true
 chmod 644 /etc/logrotate.d/nginx-proxy-manager
 
-# Set ownership
-log 'Setting ownership ...'
-
-# root
-chown root /tmp/nginx
-
-# npm user and group
-chown -R "$PUID:$PGID" /data
-chown -R "$PUID:$PGID" /etc/letsencrypt.ini
-chown -R "$PUID:$PGID" /run/nginx
-chown -R "$PUID:$PGID" /tmp/nginx
-chown -R "$PUID:$PGID" /var/cache/nginx
-chown -R "$PUID:$PGID" /var/lib/logrotate
-chown -R "$PUID:$PGID" /var/lib/nginx
-chown -R "$PUID:$PGID" /var/log/nginx
-chown -R "$PUID:$PGID" /etc/nginx
-
-# Prevents errors when installing python certbot plugins when non-root
-chown -R "$PUID:$PGID" /opt/certbot
-
 # Dynamically generate resolvers file, if resolver is IPv6, enclose in `[]`
 # thanks @tfmm
 echo resolver "$(awk 'BEGIN{ORS=" "} $1=="nameserver" {print ($2 ~ ":")? "["$2"]": $2}' /etc/resolv.conf);" > /etc/nginx/conf.d/include/resolvers.conf
@@ -274,6 +254,26 @@ fi
 cd /app
 export NODE_ENV=development
 runcmd yarn install --network-timeout=30000
+
+# Set ownership
+log 'Setting ownership ...'
+
+# root
+chown root /tmp/nginx
+
+# npm user and group
+chown -R "$PUID:$PGID" /data
+chown -R "$PUID:$PGID" /etc/letsencrypt.ini
+chown -R "$PUID:$PGID" /run/nginx
+chown -R "$PUID:$PGID" /tmp/nginx
+chown -R "$PUID:$PGID" /var/cache/nginx
+chown -R "$PUID:$PGID" /var/lib/logrotate
+chown -R "$PUID:$PGID" /var/lib/nginx
+chown -R "$PUID:$PGID" /var/log/nginx
+chown -R "$PUID:$PGID" /etc/nginx
+
+# Prevents errors when installing python certbot plugins when non-root
+chown -R "$PUID:$PGID" /opt/certbot
 
 # Create NPM service
 log "Creating NPM service"
