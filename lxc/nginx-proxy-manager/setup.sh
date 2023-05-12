@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 TMP=/tmp/npm_install.sh
-URL=https://raw.githubusercontent.com/DmitriiMukhin/proxmox-scripts/debian/lxc/nginx-proxy-manager/install
 
 if [ "$(uname)" != "Linux" ]; then
   echo "OS NOT SUPPORTED"
@@ -8,18 +7,13 @@ if [ "$(uname)" != "Linux" ]; then
 fi
 
 DISTRO=$(cat /etc/*-release | grep -w ID | cut -d= -f2 | tr -d '"')
-if [ "$DISTRO" != "alpine" ] && [ "$DISTRO" != "ubuntu" ] && [ "$DISTRO" != "debian" ]; then
+if [ "$DISTRO" != "ubuntu" ] && [ "$DISTRO" != "debian" ]; then
   echo "DISTRO NOT SUPPORTED"
   exit 1
 fi
 
-INSTALL_SCRIPT=$DISTRO
-if [ "$DISTRO" = "ubuntu" ]; then
-  INSTALL_SCRIPT="debian"
-fi
-
 rm -rf $TMP
-wget -O "$TMP" "$URL/$INSTALL_SCRIPT.sh"
+wget -O "$TMP" "https://raw.githubusercontent.com/DmitriiMukhin/proxmox-scripts/debian/lxc/nginx-proxy-manager/debian.sh"
 
 chmod +x "$TMP"
 
