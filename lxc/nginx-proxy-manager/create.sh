@@ -126,7 +126,7 @@ echo ""
 
 sleep 10
 
-# Download latest Debiab LXC template
+# Download latest Debian LXC template
 info "Updating LXC template list..."
 pveam update &>/dev/null
 
@@ -192,4 +192,4 @@ EOF
 info "Setting up LXC container..."
 pct start $_ctid
 sleep 3
-pct exec $_ctid -- sh -c "wget --no-cache -qO - $_raw_base/debian.sh | $(command -v sudo) sh"
+pct exec $_ctid -- sh -c "wget --no-cache -qO - $_raw_base/debian.sh | $(command -v sudo) bash"
