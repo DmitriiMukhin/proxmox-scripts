@@ -126,6 +126,9 @@ ln -sf /opt/certbot/bin/certbot /usr/bin/certbot
 ln -sf /usr/local/openresty/nginx/sbin/nginx /usr/sbin/nginx
 ln -sf /usr/local/openresty/nginx/ /etc/nginx
 
+# Fixing certbot
+sed -i 's/include-system-site-packages = false/include-system-site-packages = true/g' -i /opt/certbot/pyvenv.cfg
+
 # Update NPM version in package.json files
 sed -i "s+0.0.0+$_latest_version+g" backend/package.json
 sed -i "s+0.0.0+$_latest_version+g" frontend/package.json
@@ -256,27 +259,6 @@ cd /app
 export NODE_ENV=development
 runcmd yarn install --network-timeout=30000
 
-# Set ownership
-log 'Setting ownership ...'
-
-# root
-chown root /tmp/nginx
-
-# npm user and group
-chown -R "$PUID:$PGID" /data
-chown -R "$PUID:$PGID" /etc/letsencrypt
-chown -R "$PUID:$PGID" /etc/letsencrypt.ini
-chown -R "$PUID:$PGID" /run/nginx
-chown -R "$PUID:$PGID" /tmp/nginx
-chown -R "$PUID:$PGID" /var/cache/nginx
-chown -R "$PUID:$PGID" /var/lib/logrotate
-chown -R "$PUID:$PGID" /var/lib/nginx
-chown -R "$PUID:$PGID" /var/log/nginx
-chown -R "$PUID:$PGID" /etc/nginx
-
-# Prevents errors when installing python certbot plugins when non-root
-chown -R "$PUID:$PGID" /opt/certbot
-
 # Create NPM service
 log "Creating NPM service"
 cat << 'EOF' > /data/prestart.sh
@@ -300,6 +282,7 @@ chown -R "$PUID:$PGID" /var/cache/nginx
 chown -R "$PUID:$PGID" /var/lib/logrotate
 chown -R "$PUID:$PGID" /var/lib/nginx
 chown -R "$PUID:$PGID" /var/log/nginx
+chown -R "$PUID:$PGID" /etc/openresty
 chown -R "$PUID:$PGID" /etc/nginx
 
 # Prevents errors when installing python certbot plugins when non-root
