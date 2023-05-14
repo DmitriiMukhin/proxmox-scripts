@@ -263,7 +263,6 @@ runcmd yarn install --network-timeout=30000
 log "Creating NPM service"
 cat << 'EOF' > /data/prestart.sh
 #!/usr/bin/env bash
-set -Eeuo pipefail
 mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
 
 # Set ownership
