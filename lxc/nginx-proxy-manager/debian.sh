@@ -201,7 +201,6 @@ mkdir -p \
 	/data/nginx/dead_host \
 	/data/nginx/temp \
 	/data/letsencrypt-acme-challenge \
-	/run/nginx \
 	/tmp/nginx/body \
 	/var/log/nginx \
 	/var/lib/nginx/cache/public \
@@ -266,8 +265,8 @@ cat << 'EOF' > /data/prestart.sh
 mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
 mkdir -p /tmp/nginx
 
-sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/conf/nginx.conf
-sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/nginx.conf
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/usr\/local\/openresty\/nginx\/logs\/nginx.pid;/' /etc/nginx/conf/nginx.conf
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/usr\/local\/openresty\/nginx\/logs\/nginx.pid;/' /etc/nginx/nginx.conf
 
 # Set ownership
 log 'Setting ownership ...'
@@ -307,8 +306,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/conf/nginx.conf
-sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/nginx.conf
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/usr\/local\/openresty\/nginx\/logs\/nginx.pid;/' /etc/nginx/conf/nginx.conf
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/usr\/local\/openresty\/nginx\/logs\/nginx.pid;/' /etc/nginx/nginx.conf
 
 # Set ownership
 log 'Setting ownership ...'
@@ -317,7 +316,6 @@ log 'Setting ownership ...'
 chown -R "$PUID:$PGID" /data
 chown -R "$PUID:$PGID" /etc/letsencrypt
 chown -R "$PUID:$PGID" /etc/letsencrypt.ini
-chown -R "$PUID:$PGID" /run/nginx
 chown -R "$PUID:$PGID" /tmp/nginx
 chown -R "$PUID:$PGID" /var/cache/nginx
 chown -R "$PUID:$PGID" /var/lib/logrotate
