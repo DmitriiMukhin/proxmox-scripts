@@ -261,15 +261,28 @@ runcmd yarn install --network-timeout=30000
 
 # Create NPM service
 log "Creating NPM service"
-cat << 'EOF' > /data/prestart.sh
-#!/usr/bin/env bash
-mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
+cat << 'EOF' > /lib/systemd/system/npm.service
+[Unit]
+Description=Nginx Proxy Manager
+After=network.target
+Wants=openresty.service
+
+[Service]
+User=npm
+Group=npm
+Type=simple
+Environment=NODE_ENV=production
+ExecStartPre=-/bin/mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
+ExecStart=/usr/bin/node index.js --abort_on_uncaught_exception --max_old_space_size=250
+WorkingDirectory=/app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 # Set ownership
 log 'Setting ownership ...'
-
-# root
-chown root /tmp/nginx
 
 # npm user and group
 chown -R "$PUID:$PGID" /data
@@ -286,27 +299,7 @@ chown -R "$PUID:$PGID" /etc/nginx
 
 # Prevents errors when installing python certbot plugins when non-root
 chown -R "$PUID:$PGID" /opt/certbot
-EOF
 
-cat << 'EOF' > /lib/systemd/system/npm.service
-[Unit]
-Description=Nginx Proxy Manager
-After=network.target
-Wants=openresty.service
-
-[Service]
-User=npm
-Group=npm
-Type=simple
-Environment=NODE_ENV=production
-ExecStartPre=-/bin/sh /data/prestart.sh
-ExecStart=/usr/bin/node index.js --abort_on_uncaught_exception --max_old_space_size=250
-WorkingDirectory=/app
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-EOF
 systemctl daemon-reload
 systemctl enable npm
 
