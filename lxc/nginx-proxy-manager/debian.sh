@@ -261,6 +261,32 @@ runcmd yarn install --network-timeout=30000
 
 # Create NPM service
 log "Creating NPM service"
+cat << 'EOF' > /data/prestart.sh
+#!/usr/bin/env bash
+mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
+mkdir -p /tmp/nginx
+
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/conf/nginx.conf
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/nginx.conf
+
+# Set ownership
+log 'Setting ownership ...'
+
+# npm user and group
+chown -R "npm:npm" /data
+chown -R "npm:npm" /etc/letsencrypt
+chown -R "npm:npm" /etc/letsencrypt.ini
+chown -R "npm:npm" /tmp/nginx
+chown -R "npm:npm" /var/cache/nginx
+chown -R "npm:npm" /var/lib/logrotate
+chown -R "npm:npm" /var/lib/nginx
+chown -R "npm:npm" /var/log/nginx
+chown -R "npm:npm" /etc/openresty
+chown -R "npm:npm" /etc/nginx
+
+# Prevents errors when installing python certbot plugins when non-root
+chown -R "npm:npm" /opt/certbot
+EOF
 cat << 'EOF' > /lib/systemd/system/npm.service
 [Unit]
 Description=Nginx Proxy Manager
@@ -272,7 +298,7 @@ User=npm
 Group=npm
 Type=simple
 Environment=NODE_ENV=production
-ExecStartPre=-/bin/mkdir -p /tmp/nginx/body /data/letsencrypt-acme-challenge
+ExecStartPre=-/bin/sh /data/prestart.sh
 ExecStart=/usr/bin/node index.js --abort_on_uncaught_exception --max_old_space_size=250
 WorkingDirectory=/app
 Restart=on-failure
@@ -280,6 +306,9 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 EOF
+
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/conf/nginx.conf
+sed -i 's/pid \/run\/nginx\/nginx.pid;/pid \/run\/nginx.pid;/' /etc/nginx/nginx.conf
 
 # Set ownership
 log 'Setting ownership ...'
